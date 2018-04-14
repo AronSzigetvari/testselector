@@ -9,7 +9,12 @@
       "email": "aron.szigetvari@gmail.com"
     }
   ],
+  "autoload": {
+    "psr-4": {"AronSzigetvari\\TestSelector\\": "src/"}
+  },
   "require": {
-    "phpunit/phpunit": "^7"
+    "phpunit/phpunit": "^6",
+    "sebastian/diff": "^2.0",
+    "sebastian/git": "2.1.4"
   }
 }

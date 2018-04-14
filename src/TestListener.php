@@ -18,7 +18,8 @@ class TestListener implements TestListenerInterface
     {
         if ($test instanceof TestCase) {
 
-            echo $test->getName() . " started\n";
+            echo $test->getName() . " execution started\n";
+            $test->getTestResultObject()->getCodeCoverage();
         }
     }
 
@@ -26,7 +27,7 @@ class TestListener implements TestListenerInterface
     {
         if ($test instanceof TestCase) {
 
-            echo $test->getName() . " ended.\n";
+            echo $test->getName() . " execution ended.\n";
         }
     }
 }
