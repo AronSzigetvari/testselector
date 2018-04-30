@@ -82,6 +82,11 @@ class PhpUnitCoverage implements CoverageReader
         if ($this->hasCoverageForFile($path)) {
             $ccPath = $this->relative2CodeCoveragePath($path);
             $fileCoverage = $this->codeCoverageData[$ccPath];
+
+            // Extend range to reach previous executable line
+            while ($start >= 1 && !isset($fileCoverage[$start])) {
+                $start--;
+            }
             for ($line = $start; $line <= $end; $line++) {
                 if (!empty($fileCoverage[$line])) {
                     $tests += $fileCoverage[$line];

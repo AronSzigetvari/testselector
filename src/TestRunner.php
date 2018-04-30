@@ -34,7 +34,11 @@ class TestRunner extends PhpUnitTestRunner
         $diff = $differ->getDiff($refstate);
         $codeCoverageReader = $this->getCodeCoverageReader($testselectorArguments['refcoverage'], $repositoryPath);
         $selector = new TestSelector($diff, $codeCoverageReader, $repositoryPath);
-        $testList = $selector->selectTestsByLine();
+        $coveredTests = $selector->selectTestsByCoveredLines();
+        $changedTests = $selector->selectModifiedOrNewTests();
+
+        $testList = array_unique(array_merge($coveredTests, $changedTests));
+
         if (empty($testList)) {
             throw new Exception('Test selector found no tests to run.');
         }

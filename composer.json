@@ -16,6 +16,7 @@
     "phpunit/phpunit": "^6",
     "sebastian/diff": "^2.0",
     "sebastian/git": "2.1.4",
-    "cpliakas/git-wrapper": "1.7.0"
+    "cpliakas/git-wrapper": "1.7.0",
+    "sebastian/code-unit-reverse-lookup": "^1.0.1"
   }
 }

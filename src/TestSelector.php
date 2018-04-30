@@ -2,6 +2,7 @@
 namespace AronSzigetvari\TestSelector;
 
 use SebastianBergmann\Diff\Diff;
+use SebastianBergmann\CodeUnitReverseLookup\Wizard;
 
 
 
@@ -15,6 +16,9 @@ class TestSelector
 
     /** @var string */
     private $repositoryBase;
+
+    /** @var Wizard */
+    private $wizard;
 
     /**
      * TestSelector constructor.
@@ -32,16 +36,22 @@ class TestSelector
         $this->diff = $diff;
         $this->codeCoverageReader = $codeCoverageReader;
         $this->repositoryBase = $repositoryBase;
+
+        $this->wizard = new Wizard();
     }
 
 
 
-    public function selectTestsByLine() : array
+    public function selectTestsByCoveredLines() : array
     {
         $selectedTests = [];
 
         foreach ($this->diff as $diff) {
-            echo "Diff start " . $diff->getFrom() . "\n";
+            //echo "Diff start " . $diff->getFrom() . "\n";
+            $newFile = $diff->getTo();
+            if ($this->isTest($newFile)) {
+                continue; // Omit tests
+            }
             $originalFile = $diff->getFrom();
             if ($originalFile === '/dev/null') {
                 continue; // file created
@@ -68,6 +78,56 @@ class TestSelector
 //            //if ($this->codeCoverage->getData())
         }
         return array_unique($selectedTests);
+    }
+
+    public function selectModifiedOrNewTests() : array
+    {
+        $selectedTests = [];
+
+        foreach ($this->diff as $diff) {
+            $wholeFile = ($diff->getFrom() === '/dev/null');
+            if ($diff->getTo() === '/dev/null') {
+                continue; // Deleted file
+            }
+            $newFile = realpath($this->repositoryBase . '/' . $diff->getTo());
+
+            include_once($newFile);
+
+            if (!$this->isTest($newFile)) {
+                continue; // Omit non-tests
+            }
+
+            foreach ($diff->getChunks() as $chunk) {
+                $startLine = $chunk->getEnd();
+                $lines = $chunk->getEndRange();
+                for ($i = 0; $i < $lines; $i++) {
+                    $result = $this->wizard->lookup($newFile, $startLine + $i);
+                    $colonPos = strpos($result, '::');
+                    if ($colonPos !== false) {
+                        if ($wholeFile) {
+                            $selectedTests[] = substr($result, 0, $colonPos) . '.*';
+                            break;
+                        } else {
+                            $selectedTests[] = $result . '.*';
+                        }
+                    }
+                }
+            }
+        }
+        return $selectedTests;
+    }
+
+    /**
+     * Returns if the filename given is a test file
+     *
+     * Condition: Test files are those that end with Test.php
+     *
+     * @param string $file
+     * @return bool
+     */
+    protected function isTest(string $file) : bool
+    {
+        return (substr($file, -8) === 'Test.php');
     }
 
     public function createFilterPattern(array $tests)

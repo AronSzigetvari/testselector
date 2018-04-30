@@ -44,12 +44,18 @@ $differ = new Differ($repositoryPath);
 $diff = $differ->getDiff($options['refstate']);
 
 
+include_once($repositoryPath . '/vendor/autoload.php');
+
+
 $coverageReader = new PhpUnitCoverageReader($coverage, $repositoryPath, '\\');
 $testSelector = new TestSelector($diff, $coverageReader, $repositoryPath);
 
-$tests = $testSelector->selectTestsByLine();
+$tests = $testSelector->selectTestsByCoveredLines();
+$modifiedTests = $testSelector->selectModifiedOrNewTests();
 
 print_r($tests);
+print_r($modifiedTests);
+
 echo $testSelector->createHierarchicFilterPattern($tests);
 
 //echo '"' . str_replace('\\', '\\\\', $testSelector->createFilterPattern($tests)) . '"';
