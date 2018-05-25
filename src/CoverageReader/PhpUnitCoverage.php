@@ -21,33 +21,23 @@ class PhpUnitCoverage implements CoverageReader
     /**
      * PhpUnitCoverage constructor.
      * @param CodeCoverage $codeCoverage
-     * @param string $codeCoverageBase
-     * @param string $codeCoverageDS
      */
     public function __construct(
-        CodeCoverage $codeCoverage,
-        string $codeCoverageBase,
-        string $codeCoverageDS
+        CodeCoverage $codeCoverage
     ) {
         $this->codeCoverage = $codeCoverage;
         $this->codeCoverageData = $codeCoverage->getData();
-        $this->codeCoverageBase = $codeCoverageBase;
-        $this->codeCoverageDS = $codeCoverageDS;
     }
 
-    /**
-     * @param string $relativePath
-     * @return string
-     */
-    private function relative2CodeCoveragePath(string $relativePath)
-    {
-        return str_replace('/', $this->codeCoverageDS,$this->codeCoverageBase . '/' .  $relativePath);
-    }
-
-    public function hasCoverageForFile(string $path)
+    public function hasCoverageForFile(string $path): bool
     {
         $ccPath = $this->relative2CodeCoveragePath($path);
         return isset($this->codeCoverageData[$ccPath]);
+    }
+
+    public function getCoverageForFile(string $path): array
+    {
+        return $this->codeCoverageData[$path];
     }
 
     /**
@@ -96,5 +86,10 @@ class PhpUnitCoverage implements CoverageReader
             return null; // non-executable file
         }
         return array_unique($tests);
+    }
+
+    public function getSourceFiles(): array
+    {
+        return array_keys($this->codeCoverageData);
     }
 }
