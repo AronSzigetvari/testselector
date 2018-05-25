@@ -56,6 +56,7 @@ $modifiedTests = $testSelector->selectModifiedOrNewTests();
 print_r($tests);
 print_r($modifiedTests);
 
-echo $testSelector->createHierarchicFilterPattern($tests);
+$patternGenerator = new \AronSzigetvari\TestSelector\FilterGenerator();
+echo $patternGenerator->createHierarchicPattern($tests);
 
 //echo '"' . str_replace('\\', '\\\\', $testSelector->createFilterPattern($tests)) . '"';

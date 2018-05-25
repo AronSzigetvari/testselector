@@ -65,6 +65,7 @@ class TestSelector
                     $startLine = $chunk->getStart();
                     $endLine = $startLine + $chunk->getStartRange() - 1;
                     $coveredTests = $this->codeCoverageReader->getTestsForLines($originalFile, $startLine, $endLine);
+                    echo count($coveredTests) . "tests\n";
 
                     $selectedTests = array_merge($selectedTests, $coveredTests);
                 }
@@ -130,75 +131,5 @@ class TestSelector
         return (substr($file, -8) === 'Test.php');
     }
 
-    public function createFilterPattern(array $tests)
-    {
-        $pattern = implode('|', $tests);
 
-        return '/' . $pattern . '$/';
-    }
-
-    public function createHierarchicFilterPattern(array $tests)
-    {
-        $tree = [];
-        sort($tests);
-        foreach ($tests as $test) {
-            $matches = null;
-            if (preg_match('/^([\w\\\\]+)::(\w+)(?: with data set (.*))?$/', $test, $matches)) {
-                $class = $matches[1];
-                $method = $matches[2];
-                $dataSet = (isset($matches[3])) ? $matches[3] : false;
-                $namespaceComponents = explode('\\', $class);
-
-                $components = [];
-
-                foreach ($namespaceComponents as $index => $component) {
-                    if ($index > 0) {
-                        $components[] = '\\';
-                    }
-                    $components[] = $component;
-                }
-                $components[] = '::';
-                $components[] = $method;
-                if ($dataSet) {
-                    $components[] = ' with data set ';
-                    $components[] = $dataSet;
-                }
-
-                $subtree = &$tree;
-                $lastComponent = array_pop($components);
-                foreach ($components as $component) {
-                    if (!isset($subtree[$component])) {
-                        $subtree[$component] = [];
-                    }
-                    $subtree = &$subtree[$component];
-                }
-                $subtree[$lastComponent] = true;
-
-            } else {
-                $tree[$test] = true;
-            }
-        }
-        //echo json_encode($tree, JSON_PRETTY_PRINT);
-        return '/^' . $this->createPatternFromTree($tree) . '$/';
-    }
-
-    private function createPatternFromTree(array $tree): string
-    {
-        if ($tree === true) {
-            return '';
-        }
-        $subpatterns = [];
-        foreach ($tree as $key => $item) {
-            $string = preg_quote($key);
-            if (is_array($item)) {
-                $string .= $this->createPatternFromTree($item);
-            }
-            $subpatterns[] = $string;
-        }
-        if (count($subpatterns) > 1) {
-            return '(' . implode('|', $subpatterns) . ')';
-        } else {
-            return $subpatterns[0];
-        }
-    }
 }
