@@ -41,7 +41,29 @@ $persister = new \AronSzigetvari\TestSelector\CoveragePersister\PDO($pdo);
 
 $state = $persister->findStateByCommit($options['refstate']);
 
-$builder = new \AronSzigetvari\TestSelector\CoverageBuilder\File();
+$persister->resetState($state);
+
+$builder = new \AronSzigetvari\TestSelector\CoverageBuilder\FileBased();
+$builder
+    ->setCoverageReader($coverageReader)
+    ->setState($state)
+    ->setCodeCoverageBase($repositoryPath)
+    ->setCodeCoverageDS('\\')
+    ->setCoveragePersister($persister);
+
+$builder->buildCoverage();
+
+$builder = new \AronSzigetvari\TestSelector\CoverageBuilder\ClassBased();
+$builder
+    ->setCoverageReader($coverageReader)
+    ->setState($state)
+    ->setCodeCoverageBase($repositoryPath)
+    ->setCodeCoverageDS('\\')
+    ->setCoveragePersister($persister);
+
+$builder->buildCoverage();
+
+$builder = new \AronSzigetvari\TestSelector\CoverageBuilder\FunctionBased();
 $builder
     ->setCoverageReader($coverageReader)
     ->setState($state)

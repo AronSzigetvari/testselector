@@ -4,7 +4,7 @@ namespace AronSzigetvari\TestSelector\CoverageBuilder;
 use AronSzigetvari\TestSelector\CoverageBuilder;
 use AronSzigetvari\TestSelector\Model\DependentRange;
 
-class File extends CoverageBuilder
+class FileBased extends CoverageBuilder
 {
     function __construct()
     {
@@ -22,7 +22,7 @@ class File extends CoverageBuilder
         foreach ($tests as $testName) {
             $test = $this->coveragePersister->findTestByName($testName);
             $range = (new DependentRange())
-                ->setType('File')
+                ->setType('file')
                 ->setTest($test)
                 ->setSourceFile($sourceFile)
                 ->setState($this->state);
