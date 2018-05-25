@@ -10,6 +10,7 @@ namespace AronSzigetvari\TestSelector;
 use PHPUnit\Framework\Test;
 use PHPUnit\TextUI\TestRunner as PhpUnitTestRunner;
 use PHPUnit\Framework\Exception;
+use GitWrapper\GitWrapper;
 
 class TestRunner extends PhpUnitTestRunner
 {
@@ -23,26 +24,42 @@ class TestRunner extends PhpUnitTestRunner
             );
             $arguments['filter'] = $filter;
         }
+
         return parent::doRun($suite, $arguments, $exit);
     }
 
     protected function handleSelectorFilter(array $testselectorArguments)
     {
         $repositoryPath = realpath($testselectorArguments['repository'] ?? getcwd());
-        $refstate = $testselectorArguments['refstate'];
+
+        $refstate = $testselectorArguments['refstate'] ?? 'HEAD';
+        if (!preg_match('/^[0-9a-f]{40}$/', $refstate)) {
+            $refstate = $this->gitRevParse($refstate, $repositoryPath);
+        }
+
         $differ = new Differ($repositoryPath);
         $diff = $differ->getDiff($refstate);
-        $codeCoverageReader = $this->getCodeCoverageReader($testselectorArguments['refcoverage'], $repositoryPath);
+
+        //$codeCoverageReader = $this->getCodeCoverageReader($testselectorArguments['refcoverage'], $repositoryPath);
+        $factory = new CoverageReader\Factory();
+        $codeCoverageReader = $factory->create($testselectorArguments, $refstate, $repositoryPath);
         $selector = new TestSelector($diff, $codeCoverageReader, $repositoryPath);
         $coveredTests = $selector->selectTestsByCoveredLines();
         $changedTests = $selector->selectModifiedOrNewTests();
+
+        $this->write("\n" . "Tests to rerun: " . count($coveredTests));
+        $this->write("\n" . "New/changed tests: " . count($changedTests));
 
         $testList = array_unique(array_merge($coveredTests, $changedTests));
 
         if (empty($testList)) {
             throw new Exception('Test selector found no tests to run.');
         }
-        $filterArgument = $selector->createHierarchicFilterPattern($testList);
+
+        $this->write("\n" . "Tests to run: " . count($testList));
+
+        $patternGenerator = new \AronSzigetvari\TestSelector\FilterGenerator();
+        $filterArgument = $patternGenerator->createHierarchicPattern($testList);
         return $filterArgument;
     }
 
@@ -56,6 +73,16 @@ class TestRunner extends PhpUnitTestRunner
         $coverage = include($codeCoverageArgument);
         $coverageReader = new CoverageReader\PhpUnitCoverage($coverage, $repositoryPath, '\\');
         return $coverageReader;
+    }
+
+    private function gitRevParse(string $revision, string $repository = null) : string
+    {
+        $git = new GitWrapper();
+        $output = $git->git('rev-parse ' . $revision, $repository);
+        if (preg_match('/^([0-9a-f]{40})\s*$/', $output, $matches)) {
+            return $matches[1];
+        }
+        throw new \UnexpectedValueException('Revision not found in repository');
     }
 
 }

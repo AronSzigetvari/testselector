@@ -7,13 +7,13 @@ class PHPUnitCommand extends Command
 
     public function __construct()
     {
-        // my-secondswitch will accept a value - note the equals sign
-        $this->longOptions['refstate='] = 'refstateHandler';
+        $this->longOptions['refstate='] = 'refStateHandler';
         $this->longOptions['repository='] = 'repositoryHandler';
-        $this->longOptions['refcoverage='] = 'refcoverageHandler';
+        $this->longOptions['refcoveragefile='] = 'refCoverageFileHandler';
+        $this->longOptions['refcoveragedsn='] = 'refCoveragedsnHandler';
     }
 
-    protected function refstateHandler($value)
+    protected function refStateHandler($value)
     {
         $this->arguments['testselector']['refstate'] = $value;
     }
@@ -23,11 +23,23 @@ class PHPUnitCommand extends Command
         $this->arguments['testselector']['repository'] = $value;
     }
 
-    protected function refcoverageHandler($value)
+    protected function refCoverageFileHandler($value)
     {
-        $this->arguments['testselector']['refcoverage'] = $value;
+        $this->arguments['testselector']['refcoveragefile'] = $value;
     }
 
+    protected function refCoverageDsnHandler($value)
+    {
+        $this->arguments['testselector']['refcoveragedsn'] = $value;
+    }
+
+    /**
+     * Creates TestRunner
+     *
+     * Overridden for creating our own TestRunner instead of original PHPUnit TestRunner
+     *
+     * @return TestRunner|\PHPUnit\TextUI\TestRunner
+     */
     protected function createRunner()
     {
         return new TestRunner($this->arguments['loader']);
