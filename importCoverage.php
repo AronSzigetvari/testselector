@@ -72,3 +72,13 @@ $builder
     ->setCoveragePersister($persister);
 
 $builder->buildCoverage();
+
+$builder = new \AronSzigetvari\TestSelector\CoverageBuilder\LineBased();
+$builder
+    ->setCoverageReader($coverageReader)
+    ->setState($state)
+    ->setCodeCoverageBase($repositoryPath)
+    ->setCodeCoverageDS('\\')
+    ->setCoveragePersister($persister);
+
+$builder->buildCoverage();
