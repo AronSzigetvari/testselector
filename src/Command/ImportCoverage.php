@@ -59,6 +59,8 @@ class ImportCoverage extends Command
     {
         parent::run($argv);
 
+        echo "\nCoverage importer for Regression Test Selection\n";
+
         if (count($this->extraOptions) === 1) {
             $codeCoverage = $this->getCoverage($this->extraOptions[0]);
         } else {
