@@ -13,7 +13,7 @@ interface CoveragePersister
 
     public function findTestByName(string $name): Test;
 
-    public function resetState(State $state): void;
+    public function resetState(State $state, string $strategy): void;
 
     public function saveDependentRanges(array $ranges): void;
 }

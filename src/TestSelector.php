@@ -3,6 +3,7 @@ namespace AronSzigetvari\TestSelector;
 
 use SebastianBergmann\Diff\Diff;
 use SebastianBergmann\CodeUnitReverseLookup\Wizard;
+use AronSzigetvari\TestSelector\CoverageQuery\PDO as CoverageQuery;
 
 
 
@@ -12,7 +13,7 @@ class TestSelector
     private $diff;
 
     /** @var CoverageReader */
-    private $codeCoverageReader;
+    private $coverageQuery;
 
     /** @var string */
     private $repositoryBase;
@@ -23,18 +24,18 @@ class TestSelector
     /**
      * TestSelector constructor.
      * @param array $diff
-     * @param CoverageReader $codeCoverageReader
+     * @param CoverageReader $coverageQuery
      * @param string $codeCoverageBase
      * @param string $codeCoverageDS
      * @param string $repositoryBase
      */
     public function __construct(
         array $diff,
-        CoverageReader $codeCoverageReader,
+        CoverageQuery $coverageQuery,
         string $repositoryBase
     ) {
         $this->diff = $diff;
-        $this->codeCoverageReader = $codeCoverageReader;
+        $this->coverageQuery = $coverageQuery;
         $this->repositoryBase = $repositoryBase;
 
         $this->wizard = new Wizard();
@@ -42,12 +43,12 @@ class TestSelector
 
 
 
-    public function selectTestsByCoveredLines() : array
+    public function selectTestsByCoveredLines(string $strategy) : array
     {
         $selectedTests = [];
 
         foreach ($this->diff as $diff) {
-            //echo "Diff start " . $diff->getFrom() . "\n";
+            echo "Diff start " . $diff->getFrom() . "\n";
             $newFile = $diff->getTo();
             if ($this->isTest($newFile)) {
                 continue; // Omit tests
@@ -56,7 +57,7 @@ class TestSelector
             if ($originalFile === '/dev/null') {
                 continue; // file created
             }
-            if ($this->codeCoverageReader->hasCoverageForFile($originalFile)) {
+            if ($this->coverageQuery->hasCoverageForFile($originalFile)) {
                 foreach ($diff->getChunks() as $chunk) {
                     echo 'S:'.$chunk->getStart()."\n";
                     echo 'SR:'.$chunk->getStartRange()."\n";
@@ -64,11 +65,13 @@ class TestSelector
                     echo 'ER:'.$chunk->getEndRange()."\n";
                     $startLine = $chunk->getStart();
                     $endLine = $startLine + $chunk->getStartRange() - 1;
-                    $coveredTests = $this->codeCoverageReader->getTestsForLines($originalFile, $startLine, $endLine);
+                    $coveredTests = $this->coverageQuery->getTestsForLines($originalFile, $strategy, $startLine, $endLine);
                     echo count($coveredTests) . "tests\n";
 
                     $selectedTests = array_merge($selectedTests, $coveredTests);
                 }
+            } else {
+                echo "No coverage for " . $originalFile . "\n";
             }
 //            $ccPath = $this->relative2CodeCoveragePath($originalFile);
 //            if (isset($coverageData[$ccPath])) {

@@ -38,7 +38,7 @@ class TestRunner extends PhpUnitTestRunner
         }
 
         $differ = new Differ($repositoryPath);
-        $diff = $differ->getDiff($refstate);
+        $diff = $differ->getLineBasedDiff($refstate);
 
         //$codeCoverageReader = $this->getCodeCoverageReader($testselectorArguments['refcoverage'], $repositoryPath);
         $factory = new CoverageReader\Factory();

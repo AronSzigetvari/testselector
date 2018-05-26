@@ -4,7 +4,10 @@ use AronSzigetvari\TestSelector\TestSelector;
 use SebastianBergmann\Diff\Parser;
 use AronSzigetvari\TestSelector\CoverageReader\PhpUnitCoverage as PhpUnitCoverageReader;
 
-include 'vendor/autoload.php';
+include __DIR__ . '/vendor/autoload.php';
+
+AronSzigetvari\TestSelector\Command\ImportCoverage::main();
+die;
 
 $options = getopt(
     'r::R:c:',
@@ -34,7 +37,7 @@ $coverage = include($coverageFile);
 
 $repositoryPath = realpath($options['repository']);
 
-$coverageReader = new PhpUnitCoverageReader($coverage, $repositoryPath, '\\');
+$coverageReader = new PhpUnitCoverageReader($coverage);
 
 $pdo = new PDO('mysql:dbname=ts_doctrine2', 'root', '');
 $persister = new \AronSzigetvari\TestSelector\CoveragePersister\PDO($pdo);
@@ -43,6 +46,7 @@ $state = $persister->findStateByCommit($options['refstate']);
 
 $persister->resetState($state);
 
+echo "Starting File based\n";
 $builder = new \AronSzigetvari\TestSelector\CoverageBuilder\FileBased();
 $builder
     ->setCoverageReader($coverageReader)
@@ -53,6 +57,7 @@ $builder
 
 $builder->buildCoverage();
 
+echo "Starting Class based\n";
 $builder = new \AronSzigetvari\TestSelector\CoverageBuilder\ClassBased();
 $builder
     ->setCoverageReader($coverageReader)
@@ -63,6 +68,7 @@ $builder
 
 $builder->buildCoverage();
 
+echo "Starting Function based\n";
 $builder = new \AronSzigetvari\TestSelector\CoverageBuilder\FunctionBased();
 $builder
     ->setCoverageReader($coverageReader)
@@ -73,6 +79,7 @@ $builder
 
 $builder->buildCoverage();
 
+echo "Starting Line based\n";
 $builder = new \AronSzigetvari\TestSelector\CoverageBuilder\LineBased();
 $builder
     ->setCoverageReader($coverageReader)
@@ -82,3 +89,5 @@ $builder
     ->setCoveragePersister($persister);
 
 $builder->buildCoverage();
+
+echo "Ready\n";

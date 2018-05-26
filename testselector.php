@@ -14,18 +14,23 @@ use AronSzigetvari\TestSelector\Differ;
 include 'vendor/autoload.php';
 
 $options = getopt(
-    'r::R:c:',
+    'r:R:c:e:s:',
     [
-        'refstate::',
+        'refstate:',
+        'endstate:',
         'repository:',
-        'coverage:'
+        'connection:',
+        'strategy:',
     ]
 );
 
+
 $map = [
     'r' => 'refstate',
+    'e' => 'endstate',
     'R' => 'repository',
-    'c' => 'coverage'
+    'c' => 'connection',
+    's' => 'strategy'
 ];
 
 foreach ($map as $old => $new) {
@@ -35,28 +40,59 @@ foreach ($map as $old => $new) {
     }
 }
 
-$coverageFile = $options['coverage'];
-$coverage = include($coverageFile);
+if (!isset($options['strategy'])) {
+    $options['strategy'] = 'line';
+}
+
+$dsn = $options['connection'];
+$pdo = new PDO($dsn, 'root', '');
 
 $repositoryPath = realpath($options['repository']);
 
+$coverageQuery = new \AronSzigetvari\TestSelector\CoverageQuery\PDO($pdo, $options['refstate']);
+
 $differ = new Differ($repositoryPath);
-$diff = $differ->getDiff($options['refstate']);
-
-
-include_once($repositoryPath . '/vendor/autoload.php');
-
-
-$coverageReader = new PhpUnitCoverageReader($coverage, $repositoryPath, '\\');
-$testSelector = new TestSelector($diff, $coverageReader, $repositoryPath);
-
-$tests = $testSelector->selectTestsByCoveredLines();
-$modifiedTests = $testSelector->selectModifiedOrNewTests();
+switch ($options['strategy']) {
+    case 'line':
+    case 'function':
+    case 'class':
+        $diff = $differ->getLineBasedDiff($options['refstate'], $options['endstate'] ?? null);
+        $testSelector = new AronSzigetvari\TestSelector\TestSelectorStrategy\LineRangeBased($diff, $coverageQuery);
+        $tests = $testSelector->selectTestsByCoveredLines($options['strategy']);
+        break;
+    case 'file':
+        $diff = $differ->getFileBasedDiff($options['refstate'], $options['endstate'] ?? null);
+        $testSelector = new AronSzigetvari\TestSelector\TestSelectorStrategy\FileBased($diff, $coverageQuery);
+        $tests = $testSelector->selectTestsByCoveredFiles();
+        break;
+    default:
+        echo "Invalid strategy specified\n";
+        exit(1);
+}
 
 print_r($tests);
-print_r($modifiedTests);
-
 $patternGenerator = new \AronSzigetvari\TestSelector\FilterGenerator();
-echo $patternGenerator->createHierarchicPattern($tests);
+if (empty($tests)) {
+    echo "No tests were selected.\n";
+} else {
+    echo $patternGenerator->createHierarchicPattern($tests);
+}
+
+
+
+if (!isset($options['endstate'])) {
+    $modifiedTests = $testSelector->selectModifiedOrNewTests();
+    include_once($repositoryPath . '/vendor/autoload.php');
+    print_r($modifiedTests);
+
+
+    if (empty($modifiedTests)) {
+        echo "No tests were selected.\n";
+    } else {
+        echo $patternGenerator->createHierarchicPattern($modifiedTests);
+    }
+}
+
+
 
 //echo '"' . str_replace('\\', '\\\\', $testSelector->createFilterPattern($tests)) . '"';

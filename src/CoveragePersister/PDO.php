@@ -64,10 +64,10 @@ class PDO implements CoveragePersister
         return $object;
     }
 
-    public function resetState(State $state): void
+    public function resetState(State $state, string $strategy): void
     {
-        $stmt = $this->pdo->prepare("DELETE FROM dependent_range WHERE state_id = ?");
-        $stmt->execute([$state->getId()]);
+        $stmt = $this->pdo->prepare("DELETE FROM dependent_range WHERE state_id = ? AND strategy = ?");
+        $stmt->execute([$state->getId(), $strategy]);
     }
 
     /**

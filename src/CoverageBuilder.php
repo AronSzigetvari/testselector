@@ -28,6 +28,9 @@ abstract class CoverageBuilder
     /** @var State */
     protected $state;
 
+    /** @var bool */
+    protected $showProgressDisplay;
+
     /**
      * @return CoverageReader
      */
@@ -118,7 +121,23 @@ abstract class CoverageBuilder
         return $this;
     }
 
+    /**
+     * @return bool
+     */
+    public function isShowProgressDisplay(): bool
+    {
+        return $this->showProgressDisplay;
+    }
 
+    /**
+     * @param bool $useProgressDisplay
+     * @return CoverageBuilder
+     */
+    public function setShowProgressDisplay(bool $useProgressDisplay): CoverageBuilder
+    {
+        $this->showProgressDisplay = $useProgressDisplay;
+        return $this;
+    }
 
     /**
      * @param string $relativePath
@@ -162,8 +181,20 @@ abstract class CoverageBuilder
 
     public function buildCoverage()
     {
+        $sourceFiles = $this->coverageReader->getSourceFiles();
+        $count = count($sourceFiles);
+        if ($this->showProgressDisplay) {
+            echo "\n";
+            $progress = 0;
+        }
         foreach ($this->coverageReader->getSourceFiles() as $sourceFile) {
+            if ($this->showProgressDisplay) {
+                echo "\r " . (++$progress) . '/' . $count;
+            }
             $this->buildCoverageForFile($sourceFile);
+        }
+        if ($this->showProgressDisplay) {
+            echo "\n";
         }
     }
 
