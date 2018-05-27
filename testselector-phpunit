@@ -50,4 +50,4 @@ if (!defined('PHPUNIT_COMPOSER_INSTALL')) {
 
 require PHPUNIT_COMPOSER_INSTALL;
 
-AronSzigetvari\TestSelector\PHPUnitCommand::main();
+AronSzigetvari\TestSelector\PHPUnit\TestSelectorCommand::main();
