@@ -24,9 +24,9 @@ class FilterGenerator
         sort($tests);
         foreach ($tests as $test) {
             $matches = null;
-            if (preg_match('/^([\w\\\\]+)::(\w+)(?: with data set (.*))?$/', $test, $matches)) {
+            if (preg_match('/^([\w\\\\]+)(?:::(\w+)(?: with data set (.*))?)?$/', $test, $matches)) {
                 $class = $matches[1];
-                $method = $matches[2];
+                $method = $matches[2] ?? false;
                 $dataSet = (isset($matches[3])) ? $matches[3] : false;
                 $namespaceComponents = explode('\\', $class);
 
@@ -38,11 +38,13 @@ class FilterGenerator
                     }
                     $components[] = $component;
                 }
-                $components[] = '::';
-                $components[] = $method;
-                if ($dataSet) {
-                    $components[] = ' with data set ';
-                    $components[] = $dataSet;
+                if ($method) {
+                    $components[] = '::';
+                    $components[] = $method;
+                    if ($dataSet) {
+                        $components[] = ' with data set ';
+                        $components[] = $dataSet;
+                    }
                 }
 
                 $subtree = &$tree;
