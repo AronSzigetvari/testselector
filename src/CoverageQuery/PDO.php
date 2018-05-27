@@ -1,9 +1,11 @@
 <?php
 namespace AronSzigetvari\TestSelector\CoverageQuery;
+
 use PDO as PdoConnection;
+use AronSzigetvari\TestSelector\CoverageQuery;
 
 
-class PDO
+class PDO implements CoverageQuery
 {
     /**
      * @var PdoConnection
@@ -71,7 +73,7 @@ class PDO
      * @param int $line
      * @return array
      */
-    public function getTestsForLine(string $path, string $strategy, int $line)
+    public function getTestsForLine(string $path, string $strategy, int $line): array
     {
         if ($this->getTestsForLineStatement) {
             $stmt = $this->getTestsForLineStatement;
@@ -99,7 +101,7 @@ class PDO
      * @param int $end
      * @return array
      */
-    public function getTestsForLines(string $path, string $strategy, int $start, int $end)
+    public function getTestsForLines(string $path, string $strategy, int $start, int $end): array
     {
         if ($this->getTestsForLinesStatement) {
             $stmt = $this->getTestsForLinesStatement;
@@ -126,7 +128,7 @@ class PDO
      * @param string $path
      * @return array
      */
-    public function getTestsForSourceFile(string $path)
+    public function getTestsForSourceFile(string $path): array
     {
         if ($this->getTestsForLinesStatement) {
             $stmt = $this->getTestsForLinesStatement;

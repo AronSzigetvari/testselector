@@ -3,93 +3,58 @@ namespace AronSzigetvari\TestSelector;
 
 use PHP_Token_Stream as TokenStream;
 use SebastianBergmann\Diff\Diff;
-use SebastianBergmann\CodeUnitReverseLookup\Wizard;
-use AronSzigetvari\TestSelector\CoverageQuery\PDO as CoverageQuery;
-use AronSzigetvari\TestSelector\TestSelectorStrategy;
 
 
 
-class TestSelector
+class ModifiedTestSelector
 {
     /** @var array|Diff[] */
     private $diff;
 
-    /** @var Differ */
-    private $differ;
-
-    /** @var CoverageReader */
-    private $coverageQuery;
-
     /** @var string */
     private $repositoryBase;
-
-    /** @var Wizard */
-    private $wizard;
 
     /**
      * TestSelector constructor.
      * @param array $diff
-     * @param CoverageReader $coverageQuery
-     * @param string $codeCoverageBase
-     * @param string $codeCoverageDS
      * @param string $repositoryBase
      */
     public function __construct(
         array $diff,
-        CoverageQuery $coverageQuery,
         string $repositoryBase
     ) {
         $this->diff = $diff;
-        $this->coverageQuery = $coverageQuery;
         $this->repositoryBase = $repositoryBase;
-
-        $this->wizard = new Wizard();
-    }
-
-    public function selectTestsByModificationAndCoverage(string $strategy, string $refstate, string $endstate): array
-    {
-        switch ($strategy) {
-            case 'line':
-            case 'function':
-            case 'class':
-                $diff = $this->differ->getLineBasedDiff($refstate, $endstate ?? null);
-                $testSelector = new TestSelectorStrategy\LineRangeBased($diff, $this->coverageQuery);
-                $tests = $testSelector->selectTestsByCoveredLines($strategy);
-                break;
-            case 'file':
-                $diff = $this->differ->getFileBasedDiff($refstate, $endstate ?? null);
-                $testSelector = new TestSelectorStrategy\FileBased($diff, $this->coverageQuery);
-                $tests = $testSelector->selectTestsByCoveredFiles();
-                break;
-            default:
-                throw new \OutOfRangeException('Invalid strategy ' . $strategy);
-        }
-        return $tests;
     }
 
     public function selectModifiedOrNewTests() : array
     {
         $selectedTests = [];
+        $selectedClasses = [];
 
         foreach ($this->diff as $diff) {
-            $wholeFile = ($diff->getFrom() === '/dev/null');
             if ($diff->getTo() === '/dev/null') {
                 continue; // Deleted file
             }
 
-            $newFile = realpath($this->repositoryBase . '/' . $diff->getTo());
-            if (!$this->isTestFile($newFile)) {
-                continue; // Omit non-tests
+            $fullPath = realpath($this->repositoryBase . '/' . $diff->getTo());
+            if (!$this->isTestFile($fullPath)) {
+                continue; // Omit non-test files
             }
 
-            $tokenStream = new TokenStream(file_get_contents($newFile));
+            $tokenStream = new TokenStream(file_get_contents($fullPath));
 
-            $lastAddedClass = null;
-            $lastClassName = null;
+            if ($diff->getFrom() === '/dev/null') {
+                // This is a new test file, add all test classes
+                foreach ($tokenStream->getClasses() as $className => $classInfo) {
+                    $selectedClasses[] = $className;
+                }
+                continue;
+            }
+
             $lastFunctionName = null;
-            $selectedTests = [];
-            $selectedClasses = [];
             $skipUntilLine = null;
+
             foreach ($diff->getChunks() as $chunk) {
                 $startLine = $chunk->getEnd();
                 $lines = $chunk->getEndRange();
@@ -107,7 +72,7 @@ class TestSelector
 
                     if ($functionName) {
                         if ($lastFunctionName === $functionName) {
-                            // We are in the same method
+                            // We are in the same method/function
                             continue;
                         }
                         if ($this->isTestMethod($functionName, $tokenStream)) {
@@ -125,17 +90,12 @@ class TestSelector
                 }
             }
         }
-        return $selectedTests;
+        return array_merge($selectedClasses, $selectedTests);
     }
 
-    private function getClassForLine(int $line, TokenStream $tokenStream)
+    private function isTestClass(string $className)
     {
-        foreach ($tokenStream->getClasses() as $class) {
-            if ($line >= $class['startLine'] && $line <= $class['endLine']) {
-                return $class;
-            }
-        }
-        return null;
+        return substr($className, -4) === 'Test';
     }
 
     private function isTestMethod(string $functionName, TokenStream $tokenStream)
@@ -143,7 +103,7 @@ class TestSelector
         if (strpos($functionName, '::') !== false) {
             list($className, $methodName) = explode('::', $functionName);
             if ($className && $methodName) {
-                if (substr($className, -4) === 'Test') {
+                if ($this->isTestClass($className)) {
                     if (substr($methodName, 0, 4) === 'test') {
                         return true;
                     }

@@ -60,7 +60,7 @@ class FilterGenerator
             }
         }
         //echo json_encode($tree, JSON_PRETTY_PRINT);
-        return '/^' . $this->createPatternFromTree($tree) . '$/';
+        return '/^' . $this->createPatternFromTree($tree) . '/';
     }
 
     private function createPatternFromTree(array $tree): string

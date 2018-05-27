@@ -189,7 +189,7 @@ abstract class CoverageBuilder
         }
         foreach ($this->coverageReader->getSourceFiles() as $sourceFile) {
             if ($this->showProgressDisplay) {
-                echo "\r " . (++$progress) . '/' . $count;
+                echo "\rsource file " . (++$progress) . '/' . $count;
             }
             $this->buildCoverageForFile($sourceFile);
         }

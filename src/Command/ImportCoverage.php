@@ -38,12 +38,9 @@ class ImportCoverage extends Command
 
     protected function processCommandLineOptions($options)
     {
-        if (isset($options['coverage'])) {
-            $this->config->coverageFile = $options['coverage'];
-        }
         if (isset($options['strategy'])) {
             $strategyOption = $options['strategy'];
-            $this->config->strategy = (array)$strategyOption;
+            $this->config->importStrategies = (array)$strategyOption;
         }
         if (!isset($options['no-progress'])) {
             $this->config->progress = true;
@@ -72,7 +69,7 @@ class ImportCoverage extends Command
         $commitId = $this->getCurrentCommitId();
 
         $this->importCoverage(
-            (array)$this->config->strategy,
+            (array)$this->config->importStrategies,
             $codeCoverageReader,
             $persister,
             $commitId
@@ -138,16 +135,7 @@ class ImportCoverage extends Command
 
     private function getPersister(): CoveragePersister
     {
-        if (!isset($this->config->connection, $this->config->connection->dsn)) {
-            $this->error("connection DSN is not specified in config file.");
-        }
-        $connectionParams = $this->config->connection;
-        $pdo = new PDO(
-            $connectionParams->dsn,
-            $connectionParams->username ?? 'root',
-            $connectionParams->passwd ?? ''
-        );
-
+        $pdo = $this->getPdo();
         $persister = new CoveragePersister\PDO($pdo);
         return $persister;
     }
@@ -155,7 +143,6 @@ class ImportCoverage extends Command
     private function getCurrentCommitId(): string
     {
         $git = new GitWrapper();
-        echo $this->config->repository;
         $output = $git->git('rev-parse HEAD', $this->config->repository);
 
         if (preg_match('/[\da-f]{40}/', $output, $matches)) {

@@ -38,7 +38,7 @@ class FileBased
             if (!empty($coveredTests)) {
                 $selectedTests = array_merge($selectedTests, $coveredTests);
             } else {
-                echo "No coverage for " . $diff . "\n";
+//                echo "No coverage for " . $diff . "\n";
             }
         }
         return array_unique($selectedTests);

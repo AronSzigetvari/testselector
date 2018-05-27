@@ -1,6 +1,7 @@
 <?php
 namespace AronSzigetvari\TestSelector;
 
+use PDO;
 
 abstract class Command
 {
@@ -79,8 +80,29 @@ abstract class Command
     {
     }
 
+    protected function getPdo(): PDO
+    {
+        if (!isset($this->config->connection, $this->config->connection->dsn)) {
+            $this->error("connection DSN is not specified in config file.");
+        }
+        $connectionParams = $this->config->connection;
+        $pdo = new PDO(
+            $connectionParams->dsn,
+            $connectionParams->username ?? 'root',
+            $connectionParams->passwd ?? ''
+        );
+
+        return $pdo;
+    }
+
+    /**
+     * Sends message to the standard error stream and finishes execution
+     *
+     * @param $message
+     * @param int $errorCode
+     */
     protected function error($message, $errorCode = 1) {
-        echo $message . "\n";
+        fwrite(STDERR, $message . "\n");
         exit($errorCode);
     }
 }

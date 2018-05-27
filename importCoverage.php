@@ -1,4 +1,6 @@
 <?php
+use AronSzigetvari\TestSelector\Command\ImportCoverage;
+
 if (version_compare('7.1.0', PHP_VERSION, '>')) {
     fwrite(
         STDERR,
@@ -13,7 +15,6 @@ if (version_compare('7.1.0', PHP_VERSION, '>')) {
     die(1);
 }
 
-use AronSzigetvari\TestSelector\Command\ImportCoverage;
 include __DIR__ . '/vendor/autoload.php';
 
 ImportCoverage::main();
