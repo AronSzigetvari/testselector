@@ -162,13 +162,13 @@ class TestSelector extends Command
         }
         if ($this->config->list) {
             if (!$raw) {
-                echo "Modification Traversing tests:\n";
+                echo "\nModification Traversing tests:\n";
             }
             $this->listSelectedTests($tests, $raw);
 
             if ($modifiedTests) {
                 if (!$raw) {
-                    echo "Modified test classes and methods:\n";
+                    echo "\nModified test classes and methods:\n";
                 }
                 $this->listSelectedTests($modifiedTests, $raw);
             }
