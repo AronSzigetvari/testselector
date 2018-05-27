@@ -6,4 +6,6 @@ interface CoverageReader {
 
     public function getCoverageForFile(string $path): array;
 
+    public function hasCoverageForFile(string $path): bool;
+
 }
