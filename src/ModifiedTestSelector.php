@@ -44,10 +44,13 @@ class ModifiedTestSelector
 
             $tokenStream = new TokenStream(file_get_contents($fullPath));
 
+            $namespace = $this->findNamespace($tokenStream);
+            $namespacePrefix = $namespace ? $namespace . '\\' : '';
+
             if ($diff->getFrom() === '/dev/null') {
                 // This is a new test file, add all test classes
                 foreach ($tokenStream->getClasses() as $className => $classInfo) {
-                    $selectedClasses[] = $className;
+                    $selectedClasses[] = $namespacePrefix . $className;
                 }
                 continue;
             }
@@ -77,13 +80,14 @@ class ModifiedTestSelector
                         }
                         if ($this->isTestMethod($functionName, $tokenStream)) {
                             // Add test method to the list of retestable methods
-                            $selectedTests[] = $functionName;
+                            $selectedTests[] = $namespacePrefix . $functionName;
                         } elseif (strpos($functionName, '::') !== false) {
                             // Not a test method but it may affect any test methods in the class
                             list($className, $methodName) = explode('::', $functionName);
-                            $selectedClasses[] = $className;
+                            $fqcn = $namespacePrefix . $className;
+                            $selectedClasses[] = $fqcn;
                             $skipUntilLine = $tokenStream->getClasses()[$className]['endLine'];
-                            $selectedTests = $this->removeByPrefix($selectedTests, $className . '::');
+                            $selectedTests = $this->removeByPrefix($selectedTests, $fqcn . '::');
                         }
                         $lastFunctionName = $functionName;
                     }
@@ -141,6 +145,34 @@ class ModifiedTestSelector
     protected function isTestFile(string $file) : bool
     {
         return (substr($file, -8) === 'Test.php');
+    }
+
+    private function findNamespace(TokenStream $tokenStream)
+    {
+        $state = 0; // Before namespace
+        $namespace = '';
+        foreach ($tokenStream as $token) {
+            if ($state === 0) {
+                if ($token instanceof \PHP_Token_NAMESPACE) {
+                    $state = 1; // Found the namespace
+                }
+                if ($token instanceof \PHP_Token_CLASS) {
+                    // Namespace must be the first statement,
+                    // if we encountered a class, namespace cannot be defined later
+                    break;
+                }
+            }
+            if ($state === 1) {
+                if ($token instanceof \PHP_Token_SEMICOLON) {
+                    break; // Namespace finished
+                }
+                if ($token instanceof \PHP_Token_STRING || $token instanceof  \PHP_Token_NS_SEPARATOR) {
+                    // Append token to namespace
+                    $namespace .= $token;
+                }
+            }
+        }
+        return $namespace;
     }
 
 
