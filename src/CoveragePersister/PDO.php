@@ -19,6 +19,9 @@ class PDO implements CoveragePersister
         'state' => []
     ];
 
+    /** @var \PDOStatement */
+    private $saveRangeStatement;
+
     public function __construct(\PDO $pdo)
     {
         $this->pdo = $pdo;
@@ -77,9 +80,13 @@ class PDO implements CoveragePersister
     {
         $this->pdo->beginTransaction();
 
-        $stmt = $this->pdo->prepare(
+        if ($this->saveRangeStatement) {
+            $stmt = $this->saveRangeStatement;
+        } else {
+            $stmt = $this->saveRangeStatement = $stmt = $this->pdo->prepare(
             'INSERT INTO dependent_range (test_id, source_file_id, state_id, line_from, line_to, strategy) '
             . 'VALUES (?, ?, ?, ?, ?, ?)');
+        }
 
         foreach ($ranges as $range) {
             $stmt->bindValue(1, $range->getTest()->getId(), \PDO::PARAM_INT);
