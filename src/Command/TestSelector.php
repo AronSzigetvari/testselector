@@ -115,8 +115,6 @@ class TestSelector extends Command
         } else {
             $this->config->newstate = 'HEAD';
         }
-
-//        var_dump($this->config);
     }
 
     protected function run(array $argv)

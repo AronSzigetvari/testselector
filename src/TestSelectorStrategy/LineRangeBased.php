@@ -31,7 +31,6 @@ class LineRangeBased
         $selectedTests = [];
 
         foreach ($this->diff as $diff) {
-//            echo "Diff start " . $diff->getFrom() . "\n";
             $newFile = $diff->getTo();
             if ($this->isTest($newFile)) {
                 continue; // Omit tests
@@ -42,19 +41,12 @@ class LineRangeBased
             }
             if ($this->coverageQuery->hasCoverageForFile($originalFile)) {
                 foreach ($diff->getChunks() as $chunk) {
-//                    echo 'S:'.$chunk->getStart()."\n";
-//                    echo 'SR:'.$chunk->getStartRange()."\n";
-//                    echo 'E:'.$chunk->getEnd()."\n";
-//                    echo 'ER:'.$chunk->getEndRange()."\n";
                     $startLine = $chunk->getStart();
                     $endLine = $startLine + $chunk->getStartRange() - 1;
                     $coveredTests = $this->coverageQuery->getTestsForLines($originalFile, $strategy, $startLine, $endLine);
-//                    echo count($coveredTests) . " tests\n";
 
                     $selectedTests = array_merge($selectedTests, $coveredTests);
                 }
-            } else {
-//                echo "No coverage for " . $originalFile . "\n";
             }
         }
         return array_unique($selectedTests);

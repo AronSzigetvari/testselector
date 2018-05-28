@@ -37,8 +37,6 @@ class FileBased
             $coveredTests = $this->coverageQuery->getTestsForSourceFile($diff);
             if (!empty($coveredTests)) {
                 $selectedTests = array_merge($selectedTests, $coveredTests);
-            } else {
-//                echo "No coverage for " . $diff . "\n";
             }
         }
         return array_unique($selectedTests);
