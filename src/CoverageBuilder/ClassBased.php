@@ -31,7 +31,7 @@ class ClassBased extends RangeBasedAbstract
             foreach ($tests as $testName) {
                 $test = $this->coveragePersister->findTestByName($testName);
                 $range = (new DependentRange())
-                    ->setType('class')
+                    ->setStrategy('class')
                     ->setTest($test)
                     ->setSourceFile($sourceFile)
                     ->setState($this->state)

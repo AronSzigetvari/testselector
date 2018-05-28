@@ -92,14 +92,14 @@ class PDO implements CoveragePersister
             $stmt->bindValue(1, $range->getTest()->getId(), \PDO::PARAM_INT);
             $stmt->bindValue(2, $range->getSourceFile()->getId(), \PDO::PARAM_INT);
             $stmt->bindValue(3, $range->getState()->getId(), \PDO::PARAM_INT);
-            if ($range->getType() === 'file') {
+            if ($range->getStrategy() === 'file') {
                 $stmt->bindValue(4, $range->getLineFrom(), \PDO::PARAM_NULL);
                 $stmt->bindValue(5, $range->getLineTo(), \PDO::PARAM_NULL);
             } else {
                 $stmt->bindValue(4, $range->getLineFrom(), \PDO::PARAM_INT);
                 $stmt->bindValue(5, $range->getLineTo(), \PDO::PARAM_INT);
             }
-            $stmt->bindValue(6, $range->getType(), \PDO::PARAM_STR);
+            $stmt->bindValue(6, $range->getStrategy(), \PDO::PARAM_STR);
             $stmt->execute();
         }
         $this->pdo->commit();

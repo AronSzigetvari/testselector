@@ -18,7 +18,7 @@ class DependentRange
     private $lineTo;
 
     /** @var string */
-    private $type;
+    private $strategy;
 
     /** @var SourceFile */
     private $sourceFile;
@@ -48,7 +48,7 @@ class DependentRange
     }
 
     /**
-     * @return int|null
+     * @return int|-null
      */
     public function getLineTo()
     {
@@ -68,18 +68,18 @@ class DependentRange
     /**
      * @return string
      */
-    public function getType(): string
+    public function getStrategy(): string
     {
-        return $this->type;
+        return $this->strategy;
     }
 
     /**
-     * @param string $type
+     * @param string $strategy
      * @return DependentRange
      */
-    public function setType(string $type): DependentRange
+    public function setStrategy(string $strategy): DependentRange
     {
-        $this->type = $type;
+        $this->strategy = $strategy;
         return $this;
     }
 

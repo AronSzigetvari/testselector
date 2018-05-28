@@ -39,7 +39,7 @@ class FunctionBased extends RangeBasedAbstract
             foreach ($tests as $testName) {
                 $test = $this->coveragePersister->findTestByName($testName);
                 $range = (new DependentRange())
-                    ->setType('function')
+                    ->setStrategy('function')
                     ->setTest($test)
                     ->setSourceFile($sourceFile)
                     ->setState($this->state)

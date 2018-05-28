@@ -80,7 +80,7 @@ class LineBased extends RangeBasedAbstract
                         $testObject = $this->coveragePersister->findTestByName($testName);
                         $range = (new DependentRange())
                             ->setTest($testObject)
-                            ->setType('line')
+                            ->setStrategy('line')
                             ->setState($this->state)
                             ->setSourceFile($sourceFile)
                             ->setLineFrom($startLine);

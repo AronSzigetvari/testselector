@@ -22,7 +22,7 @@ class FileBased extends CoverageBuilder
         foreach ($tests as $testName) {
             $test = $this->coveragePersister->findTestByName($testName);
             $range = (new DependentRange())
-                ->setType('file')
+                ->setStrategy('file')
                 ->setTest($test)
                 ->setSourceFile($sourceFile)
                 ->setState($this->state);
