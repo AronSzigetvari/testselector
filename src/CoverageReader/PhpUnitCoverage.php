@@ -12,12 +12,6 @@ class PhpUnitCoverage implements CoverageReader
     /** @var array */
     private $codeCoverageData;
 
-    /** @var string */
-    private $codeCoverageBase;
-
-    /** @var string */
-    private $codeCoverageDS;
-
     /**
      * PhpUnitCoverage constructor.
      * @param CodeCoverage $codeCoverage
