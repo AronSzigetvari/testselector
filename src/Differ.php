@@ -38,7 +38,6 @@ class Differ
         } else {
             $param = escapeshellarg($startCommit);
         }
-        echo 'diff --name-only ' . $param . ' *.php';
         $diffOutput = $this->git->git(
             'diff --name-only ' . $param . ' *.php',
             $this->repositoryPath

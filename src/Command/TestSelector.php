@@ -211,7 +211,6 @@ class TestSelector extends Command
     private function getCurrentCommitId(): string
     {
         $git = new GitWrapper();
-        echo $this->config->repository;
         $output = $git->git('rev-parse HEAD', $this->config->repository);
 
         if (preg_match('/[\da-f]{40}/', $output, $matches)) {
